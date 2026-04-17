@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>SLOT CAT - REAL CASINO</title>
+    <style>
+        /* ПОЛНЫЙ ДИЗАЙН САЙТА */
+        body {
+            margin: 0;
+            background: #050508;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            background: #0d0e12;
+            border-bottom: 2px solid #ff00ff;
+        }
+
+        .logo { font-size: 28px; font-weight: 900; color: #ffce00; text-shadow: 0 0 10px #ff00ff; }
+        
+        #balance-display {
+            background: #1a2029;
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: 1px solid #00d2ff;
+            color: #00d2ff;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .hero {
+            padding: 60px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #1b1464 0%, #4b0082 100%);
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            padding: 50px 5%;
+        }
+
+        .slot-card {
+            background: #161a21;
+            border-radius: 20px;
+            border: 1px solid #333;
+            text-align: center;
+            padding-bottom: 25px;
+            transition: 0.3s;
+        }
+
+        .slot-card:hover {
+            border-color: #ff00ff;
+            transform: scale(1.03);
+        }
+
+        .slot-image {
+            height: 180px;
+            background: #000;
+            font-size: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+        }
+
+        .play-btn {
+            background: #22c55d;
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        .play-btn:hover { background: #1fb355; box-shadow: 0 0 15px #22c55d; }
+        .play-btn:active { transform: scale(0.95); }
+
+        /* Сообщение о выигрыше */
+        #status-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">🐾 SLOT CAT</div>
+    <div id="balance-display">БАЛАНС: <span id="balance">{{ balance }}</span> 🐟</div>
+</header>
+
+<div class="hero">
+    <h1 style="font-size: 45px; margin: 0;">ВІТАЄМО В SLOT CAT!</h1>
+    <p style="font-size: 20px; opacity: 0.8;">Ставка в кожній грі — 50 🐟</p>
+</div>
+
+<div id="status-bar"></div>
+
+<div class="game-grid">
+    <div class="slot-card">
+        <div class="slot-image">🐱</div>
+        <h2 style="color: #ffce00;">Neon Meow</h2>
+        <button class="play-btn" onclick="sendSpin()">ГРАТИ</button>
+    </div>
+    <div class="slot-card">
+        <div class="slot-image">🐠</div>
+        <h2 style="color: #ffce00;">Fish Hunter</h2>
+        <button class="play-btn" onclick="sendSpin()">ГРАТИ</button>
+    </div>
+    <div class="slot-card">
+        <div class="slot-image">🌙</div>
+        <h2 style="color: #ffce00;">Night Cat</h2>
+        <button class="play-btn" onclick="sendSpin()">ГРАТИ</button>
+    </div>
+</div>
+
+<script>
+    function sendSpin() {
+        const statusBar = document.getElementById('status-bar');
+        
+        fetch('/spin', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                // Обновляем баланс мгновенно без перезагрузки
+                document.getElementById('balance').innerText = data.new_balance;
+                
+                statusBar.style.display = 'block';
+                if (data.status === 'win') {
+                    statusBar.style.background = '#22c55d';
+                    statusBar.innerText = "ПЕРЕМОГА! + " + data.win_amount + " 🐟";
+                } else if (data.status === 'lose') {
+                    statusBar.style.background = '#f33333';
+                    statusBar.innerText = "СПРОБУЙ ЩЕ РАЗ!";
+                }
+                
+                setTimeout(() => { statusBar.style.display = 'none'; }, 2000);
+            })
+            .catch(err => alert("Поповніть баланс!"));
+    }
+</script>
+
+</body>
+</html>
