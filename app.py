@@ -2,230 +2,192 @@
 # pip install streamlit
 
 import streamlit as st
+import random
 
 def main():
-    # Настройка страницы: убираем отступы и ставим темную тему
+    # Полная настройка страницы
     st.set_page_config(
-        page_title="Slot Cat Casino",
+        page_title="Slot Cat - Мурррчащий Выигрыш",
         page_icon="🐾",
         layout="wide",
         initial_sidebar_state="collapsed"
     )
 
-    # ПОЛНЫЙ ИНЖЕКТ CSS ДЛЯ УДАЛЕНИЯ СЛЕДОВ STREAMLIT
+    # Инициализация игровых данных в сессии
+    if 'balance' not in st.session_state:
+        st.session_state.balance = 1000
+    if 'wins' not in st.session_state:
+        st.session_state.wins = 0
+
+    # CSS для ПОЛНОГО перекрытия интерфейса Streamlit
     st.markdown("""
         <style>
-        /* Прячем стандартный интерфейс Streamlit */
-        header, footer, [data-testid="stSidebarNav"], .stDeployButton {
-            display: none !important;
-        }
+        /* Скрываем мусор Streamlit */
+        header, footer, .stDeployButton, [data-testid="stHeader"] { display: none !important; }
+        .block-container { padding: 0 !important; }
         
-        /* Убираем отступы контейнеров */
-        .block-container {
-            padding: 0 !important;
-            max-width: 100% !important;
-        }
-
-        /* Общий фон сайта */
-        .stApp {
+        /* Главный контейнер сайта */
+        .main-site {
             background-color: #050508;
-            color: #eeeff0;
-            font-family: 'Inter', sans-serif;
+            color: white;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
         }
 
-        /* КАСТОМНЫЙ ХЕДЕР (Верхняя панель) */
-        .custom-header {
+        /* Хедер */
+        .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 40px;
-            background: rgba(13, 14, 18, 0.95);
-            border-bottom: 1px solid #22c55d;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            padding: 15px 50px;
+            background: #0d0e12;
+            border-bottom: 2px solid #ff00ff;
         }
 
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-            color: #ffce00;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .auth-btns {
-            display: flex;
-            gap: 15px;
-        }
-
-        .btn-entry {
-            background: transparent;
-            color: white;
-            border: 1px solid #30353b;
-            padding: 8px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .btn-reg {
-            background: #22c55d;
-            color: #050508;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 700;
-        }
-
-        /* ГЛАВНЫЙ БАННЕР */
-        .hero-banner {
-            width: 100%;
-            height: 350px;
-            background: linear-gradient(90deg, #1a1464 0%, #ff00ff 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .hero-title {
-            font-size: 48px;
-            font-weight: 900;
-            margin: 0;
-            color: white;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-
-        /* СЕТКА ИГР (СЛОТЫ) */
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-            padding: 20px 40px;
-        }
-
-        .game-card {
+        .logo { font-size: 26px; font-weight: bold; color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
+        
+        .balance-display {
             background: #1a2029;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #30353b;
-            transition: transform 0.3s, border-color 0.3s;
-            cursor: pointer;
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px);
-            border-color: #ffce00;
-        }
-
-        .game-thumb {
-            width: 100%;
-            height: 180px;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 60px;
-        }
-
-        .game-info {
-            padding: 12px;
-            text-align: center;
-        }
-
-        .play-btn {
-            background: #22c55d;
-            color: white;
-            border: none;
-            padding: 5px 15px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 1px solid #00d2ff;
+            color: #00d2ff;
             font-weight: bold;
         }
 
-        /* ФУТЕР */
-        .footer {
-            background: #0b0d11;
-            padding: 40px;
+        /* Сетка игр */
+        .container { padding: 40px 50px; }
+        
+        .slot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        /* Карточка игры */
+        .game-card {
+            background: #161a21;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid #333;
+            transition: 0.3s;
             text-align: center;
-            margin-top: 50px;
-            border-top: 1px solid #1a2029;
-            font-size: 14px;
-            color: #8e949c;
+            padding-bottom: 15px;
+        }
+
+        .game-card:hover {
+            border-color: #ff00ff;
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+        }
+
+        .game-preview {
+            height: 150px;
+            background: linear-gradient(45deg, #1a1464, #ff00ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+        }
+
+        .game-title { margin: 15px 0; font-weight: bold; font-size: 18px; }
+
+        /* Реальная кнопка внутри Streamlit через кастомный стиль */
+        div.stButton > button {
+            background: #22c55d !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 10px 20px !important;
+            width: 80% !important;
+            font-weight: bold !important;
+            margin: 0 auto !important;
+            display: block !important;
+        }
+        
+        div.stButton > button:hover {
+            background: #1fb355 !important;
+            box-shadow: 0 0 10px #22c55d !important;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    # 1. ШАПКА САЙТА
-    st.markdown("""
-        <div class="custom-header">
+    # ВЕРХНЯЯ ПАНЕЛЬ
+    st.markdown(f"""
+        <div class="navbar">
             <div class="logo">🐾 SLOT CAT</div>
-            <div class="auth-btns">
-                <button class="btn-entry">Увійти</button>
-                <button class="btn-reg">Реєстрація</button>
-            </div>
+            <div class="balance-display">БАЛАНС: {st.session_state.balance} 🐟</div>
         </div>
     """, unsafe_allow_html=True)
 
-    # 2. ГЕРОЙ-БАННЕР
+    # БАННЕР
     st.markdown("""
-        <div class="hero-banner">
-            <p style="color: #ffce00; font-weight: bold; letter-spacing: 2px;">ВІТАЛЬНИЙ ПАКЕТ</p>
-            <h1 class="hero-title">200 000 ₴ + 500 FS</h1>
-            <button class="btn-reg" style="margin-top: 20px; padding: 15px 40px; font-size: 18px;">ЗАБРАТИ БОНУС</button>
+        <div style="background: linear-gradient(90deg, #1b1464, #4b0082); padding: 60px; text-align: center; margin-bottom: 20px;">
+            <h1 style="color: white; font-size: 45px; margin: 0;">МЯУ-ДЖЕКПОТ</h1>
+            <p style="color: #00d2ff; font-size: 20px;">Грай та вигравай разом з котом!</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # 3. ОСНОВНОЙ КОНТЕНТ
-    st.markdown("<h2 style='margin-left: 40px; color: #ffce00;'>🎰 Популярні ігри</h2>", unsafe_allow_html=True)
+    # ИГРОВАЯ ЗОНА
+    st.markdown('<div class="container">', unsafe_allow_html=True)
+    st.markdown("<h2 style='color: #ffce00;'>🎰 Ігровий зал</h2>", unsafe_allow_html=True)
 
-    # Создаем сетку через стандартные колонки, но внутри кастомный HTML
     cols = st.columns(4)
     games = [
-        {"name": "Cat of Olympus", "emoji": "⚡"},
-        {"name": "Sweet Kitty", "emoji": "🍬"},
-        {"name": "Fish Hunter", "emoji": "🐟"},
-        {"name": "Meow Party", "emoji": "🎉"},
-        {"name": "Wild Cat", "emoji": "🦁"},
-        {"name": "Cyber Paw", "emoji": "🦾"},
-        {"name": "Golden Tail", "emoji": "📀"},
-        {"name": "Night Hunter", "emoji": "🌙"}
+        {"name": "Neon Meow", "icon": "🐱"},
+        {"name": "Lucky Paw", "icon": "🐾"},
+        {"name": "Fish Gold", "icon": "🐠"},
+        {"name": "Night Hunter", "icon": "🐈‍⬛"},
+        {"name": "Cyber Slot", "icon": "🦾"},
+        {"name": "Mouse Trap", "icon": "🧀"},
+        {"name": "Cat Empire", "icon": "👑"},
+        {"name": "Purr Spin", "icon": "🌀"}
     ]
 
     for i, game in enumerate(games):
         with cols[i % 4]:
+            # Сама карточка (визуал)
             st.markdown(f"""
                 <div class="game-card">
-                    <div class="game-thumb">{game['emoji']}</div>
-                    <div class="game-info">
-                        <div style="margin-bottom: 10px; font-weight: 600;">{game['name']}</div>
-                        <button class="play-btn">ГРАТИ</button>
-                    </div>
+                    <div class="game-preview">{game['icon']}</div>
+                    <div class="game-title">{game['name']}</div>
                 </div>
             """, unsafe_allow_html=True)
-            # Добавляем невидимую кнопку Streamlit поверх для функционала, если нужно
-            if st.button(f"Play {i}", key=f"p_{i}", help=f"Натисніть для гри в {game['name']}", use_container_width=True):
-                st.toast(f"Запуск {game['name']}...")
+            
+            # Реально работающая кнопка Streamlit
+            if st.button(f"ГРАТИ", key=f"btn_{i}"):
+                # ЛОГИКА ИГРЫ (Реальная работа)
+                if st.session_state.balance >= 50:
+                    st.session_state.balance -= 50 # Ставка
+                    win_amount = random.choice([0, 0, 100, 200, 0, 500]) # Рандомный выигрыш
+                    
+                    if win_amount > 0:
+                        st.session_state.balance += win_amount
+                        st.session_state.wins += 1
+                        st.balloons()
+                        st.success(f"ВИГРАШ: {win_amount} 🐟!")
+                    else:
+                        st.error("Спробуй ще раз!")
+                    
+                    # Принудительное обновление для моментального отображения баланса
+                    st.rerun()
+                else:
+                    st.warning("Недостатньо рибов для ставки!")
 
-    # 4. АДМИН-ПАНЕЛЬ (Скрыта в самом низу)
-    with st.expander("🛠️ Налаштування сайту (Адмін)"):
-        st.write("Тут можна керувати шансом виграшу та бонусами")
-        rtp = st.slider("RTP (%)", 0, 100, 95)
-        st.button("Зберегти зміни")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # 5. ФУТЕР
+    # АДМИНКА (Встроена прямо в сайт, но скрыта внизу)
+    with st.expander("🛠 Управління Слотами (Адмін)"):
+        st.subheader("Налаштування казино")
+        new_bal = st.number_input("Змінити баланс гравця", value=st.session_state.balance)
+        if st.button("Оновити"):
+            st.session_state.balance = new_bal
+            st.rerun()
+
+    # ФУТЕР
     st.markdown("""
-        <div class="footer">
-            <p>© 2024 Slot Cat - Казино України. Всі права захищені.</p>
-            <p>Участь в азартних іграх може викликати ігрову залежність. 21+</p>
-            <div style="margin-top: 20px;">
-                <span style="border: 1px solid #8e949c; padding: 2px 5px; border-radius: 4px;">18+</span>
-                <span style="margin-left: 15px;">Ліцензія КРАЇЛ №777</span>
-            </div>
+        <div style="background: #0d0e12; padding: 40px; text-align: center; border-top: 1px solid #333; margin-top: 40px;">
+            <p style="color: #666;">Slot Cat Casino © 2024. Ліцензія КРАЇЛ №777. Грайте відповідально.</p>
         </div>
     """, unsafe_allow_html=True)
 
