@@ -2,128 +2,125 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SLOT CAT - Грати Онлайн</title>
+    <title>Slot Cat - Premium Casino</title>
     <style>
-        body {
-            margin: 0;
-            background: #050508;
-            color: #fff;
-            font-family: 'Arial', sans-serif;
-        }
-
-        /* Шапка сайта */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 5%;
-            background: #0d0e12;
-            border-bottom: 2px solid #ffce00;
-        }
-
-        .logo { font-size: 24px; font-weight: bold; color: #ffce00; text-shadow: 0 0 10px #ff00ff; }
-        .balance-box { background: #1a2029; padding: 10px 20px; border-radius: 10px; border: 1px solid #22c55d; color: #22c55d; font-weight: bold; }
-
-        /* Игровое поле */
-        .container { padding: 40px 5%; }
+        body { background: #050508; color: white; font-family: sans-serif; text-align: center; margin: 0; }
+        .header { background: #0d0e12; padding: 20px; border-bottom: 2px solid #ffce00; display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; }
+        .logo { color: #ffce00; font-size: 24px; font-weight: bold; }
         
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+        /* Стили игрового автомата */
+        .slot-machine {
+            background: #1a1a2e;
+            width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 5px solid #333;
+            border-radius: 20px;
+            box-shadow: 0 0 30px #ff00ff;
         }
-
-        .card {
-            background: #111;
-            border-radius: 15px;
-            border: 1px solid #333;
-            text-align: center;
-            padding-bottom: 20px;
-            transition: 0.3s;
+        .reels-container {
+            display: flex;
+            justify-content: space-around;
+            background: #000;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
-
-        .card:hover { border-color: #ff00ff; transform: translateY(-5px); }
-
-        .thumb { height: 150px; background: #000; font-size: 60px; display: flex; align-items: center; justify-content: center; border-radius: 15px 15px 0 0; }
-
-        .play-btn {
-            background: #22c55d;
+        .reel {
+            width: 80px;
+            height: 100px;
+            background: #fff;
             color: #000;
-            border: none;
-            padding: 12px 30px;
+            font-size: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border-radius: 5px;
             font-weight: bold;
-            cursor: pointer;
-            width: 80%;
         }
-
-        .play-btn:active { transform: scale(0.95); }
-
-        /* Уведомления */
-        #alert {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 30px;
-            border-radius: 8px;
-            display: none;
-            font-weight: bold;
-            z-index: 100;
+        .controls { display: flex; flex-direction: column; gap: 10px; }
+        .btn-spin {
+            background: linear-gradient(180deg, #22c55d 0%, #16a34a 100%);
+            border: none; color: white; padding: 15px; font-size: 20px;
+            font-weight: bold; border-radius: 10px; cursor: pointer;
         }
+        .btn-spin:disabled { background: #444; cursor: not-allowed; }
+        .balance-box { font-size: 24px; color: #ffce00; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<header>
+<div class="header">
     <div class="logo">🐾 SLOT CAT</div>
-    <div class="balance-box">🐟 <span id="balance">{{ balance }}</span></div>
-</header>
+    <div class="balance-box">Баланс: <span id="balance">{{ balance }}</span> 🐟</div>
+</div>
 
-<div id="alert"></div>
-
-<div class="container">
-    <h1 style="color: #ffce00;">Популярні Слоти</h1>
-    <div class="game-grid">
-        <div class="card">
-            <div class="thumb">🐱</div>
-            <h3>Neon Cat</h3>
-            <button class="play-btn" onclick="play()">ГРАТИ</button>
-        </div>
-        <div class="card">
-            <div class="thumb">💎</div>
-            <h3>Crystal Kitty</h3>
-            <button class="play-btn" onclick="play()">ГРАТИ</button>
-        </div>
-        <div class="card">
-            <div class="thumb">🎰</div>
-            <h3>Classic Cat</h3>
-            <button class="play-btn" onclick="play()">ГРАТИ</button>
-        </div>
+<div class="slot-machine">
+    <div class="reels-container">
+        <div id="reel1" class="reel">?</div>
+        <div id="reel2" class="reel">?</div>
+        <div id="reel3" class="reel">?</div>
+    </div>
+    
+    <div class="controls">
+        <div id="win-display" style="height: 30px; color: #22c55d; font-weight: bold;"></div>
+        <button class="btn-spin" id="spin-button" onclick="startSpin()">SPIN</button>
     </div>
 </div>
 
 <script>
-    function play() {
-        fetch('/spin', { method: 'POST' })
+    let isSpinning = false;
+
+    function startSpin() {
+        if (isSpinning) return;
+        
+        const btn = document.getElementById('spin-button');
+        const winDisplay = document.getElementById('win-display');
+        btn.disabled = true;
+        isSpinning = true;
+        winDisplay.innerText = "УДАЧІ...";
+
+        // Анимация "кручения" (визуальный эффект)
+        let count = 0;
+        const interval = setInterval(() => {
+            const tempSymbols = ['🍒', '🍋', '7', '💎', '🍇'];
+            document.getElementById('reel1').innerText = tempSymbols[Math.floor(Math.random()*5)];
+            document.getElementById('reel2').innerText = tempSymbols[Math.floor(Math.random()*5)];
+            document.getElementById('reel3').innerText = tempSymbols[Math.floor(Math.random()*5)];
+            count++;
+            if (count > 20) clearInterval(interval);
+        }, 50);
+
+        // Запрос на сервер за реальным результатом
+        fetch('/api/spin', { method: 'POST' })
             .then(res => res.json())
             .then(data => {
-                const alertBox = document.getElementById('alert');
-                document.getElementById('balance').innerText = data.new_balance;
-
-                alertBox.style.display = 'block';
-                if (data.status === 'win') {
-                    alertBox.style.background = '#22c55d';
-                    alertBox.innerText = 'ВИГРАШ: ' + data.win_amount + ' 🐟';
-                } else if (data.status === 'lose') {
-                    alertBox.style.background = '#f33333';
-                    alertBox.innerText = 'НЕВДАЧА';
-                } else {
-                    alertBox.style.background = '#ffce00';
-                    alertBox.innerText = data.message;
-                }
-                
-                setTimeout(() => { alertBox.style.display = 'none'; }, 2000);
+                setTimeout(() => {
+                    clearInterval(interval);
+                    // Устанавливаем реальные результаты с сервера
+                    const symbolMap = { '7': '7', 'BAR': '💳', 'CHERRY': '🍒', 'LEMON': '🍋', 'GRAPE': '🍇' };
+                    document.getElementById('reel1').innerText = symbolMap[data.reels[0]];
+                    document.getElementById('reel2').innerText = symbolMap[data.reels[1]];
+                    document.getElementById('reel3').innerText = symbolMap[data.reels[2]];
+                    
+                    document.getElementById('balance').innerText = data.new_balance;
+                    
+                    if (data.win > 0) {
+                        winDisplay.innerText = "ВИГРАШ: " + data.win + " 🐟";
+                        winDisplay.style.color = "#ffce00";
+                    } else {
+                        winDisplay.innerText = "СПРОБУЙ ЩЕ";
+                        winDisplay.style.color = "#f33333";
+                    }
+                    
+                    isSpinning = false;
+                    btn.disabled = false;
+                }, 1100);
+            })
+            .catch(err => {
+                alert("Помилка або мало коштів!");
+                isSpinning = false;
+                btn.disabled = false;
             });
     }
 </script>
