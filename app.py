@@ -2,139 +2,203 @@
 # pip install streamlit
 
 import streamlit as st
-import time
 
-# --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ (Имитация базы данных) ---
-if 'balance' not in st.session_state:
-    st.session_state.balance = 1000
-if 'is_logged_in' not in st.session_state:
-    st.session_state.is_logged_in = False
-if 'user_role' not in st.session_state:
-    st.session_state.user_role = "user" # user или admin
+def main():
+    # Настройка страницы (Title и Favicon)
+    st.set_page_config(
+        page_title="Slot Cat Casino",
+        page_icon="🐾",
+        layout="wide",
+        initial_sidebar_state="collapsed" # Прячем боковую панель для вида сайта
+    )
 
-def apply_styles():
-    """Кастомный неоновый стиль Slot Cat"""
+    # Внедряем мощный CSS, чтобы убить стандартный вид Streamlit
     st.markdown("""
         <style>
-        .stApp { background-color: #0f0c29; color: #f0f0f0; }
-        h1, h2 { color: #ff00ff !important; text-shadow: 2px 2px 10px #ff00ff; }
-        .balance-box {
-            background: rgba(0, 210, 255, 0.1);
-            border: 1px solid #00d2ff;
-            padding: 10px;
-            border-radius: 10px;
-            text-align: center;
+        /* Прячем стандартные элементы Streamlit */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        
+        /* Фон всего сайта */
+        .stApp {
+            background: radial-gradient(circle, #1a0b2e 0%, #050508 100%);
+            color: #ffffff;
+        }
+
+        /* Навигация */
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5%;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #ff00ff;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .logo {
+            font-size: 28px;
             font-weight: bold;
-            color: #00d2ff;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+            text-transform: uppercase;
         }
-        div.stButton > button {
-            background: linear-gradient(90deg, #ff00ff, #00d2ff);
-            color: white; border-radius: 20px; border: none; width: 100%;
+
+        /* Кнопки входа/регистрации */
+        .auth-buttons .btn {
+            padding: 10px 25px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+            border: none;
         }
-        .admin-section {
-            border: 2px dashed #ffce00;
-            padding: 20px;
+        .btn-login { background: transparent; color: white; border: 1px solid #fff !important; }
+        .btn-reg { background: linear-gradient(180deg, #ff00ff 0%, #800080 100%); color: white; }
+
+        /* Баннер (Hero section) */
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: url('https://img.freepik.com/free-vector/abstract-neon-lights-background-design_23-2148404249.jpg');
+            background-size: cover;
+            border-radius: 20px;
+            margin: 20px 5%;
+        }
+
+        /* Сетка игровых карточек */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+            padding: 40px 5%;
+        }
+
+        .game-card {
+            position: relative;
             border-radius: 15px;
-            margin-top: 20px;
+            overflow: hidden;
+            border: 1px solid #333;
+            transition: 0.3s;
+            background: #111;
+        }
+        
+        .game-card:hover {
+            transform: scale(1.05);
+            border-color: #00d2ff;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
+        }
+
+        .game-img {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(45deg, #111, #222);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: 0.3s;
+        }
+        .game-card:hover .play-overlay { opacity: 1; }
+
+        .btn-play {
+            background: #22c55d;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Кастомный сайдбар для админки (скрытый) */
+        .admin-trigger {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            opacity: 0.1;
         }
         </style>
     """, unsafe_allow_html=True)
 
-def login_form():
-    """Простая форма входа"""
-    st.sidebar.subheader("Авторизация")
-    user = st.sidebar.text_input("Логин", value="AdminCat")
-    pwd = st.sidebar.text_input("Пароль", type="password")
-    if st.sidebar.button("Войти"):
-        st.session_state.is_logged_in = True
-        if user == "AdminCat" and pwd == "777":
-            st.session_state.user_role = "admin"
-            st.sidebar.success("Вход как Админ!")
-        else:
-            st.session_state.user_role = "user"
-            st.sidebar.success("Успешный вход!")
-        st.rerun()
+    # 1. HEADER
+    st.markdown("""
+        <div class="nav-bar">
+            <div class="logo">🐾 SLOT CAT</div>
+            <div class="auth-buttons">
+                <button class="btn btn-login">Вход</button>
+                <button class="btn btn-reg">Регистрация</button>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
-def admin_panel():
-    """Функционал админ-панели"""
-    st.markdown('<div class="admin-section">', unsafe_allow_html=True)
-    st.header("⚙️ Админ-панель (Управление сайтом)")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        new_balance = st.number_input("Изменить баланс игрока", value=st.session_state.balance)
-        if st.button("Обновить баланс"):
-            st.session_state.balance = new_balance
-            st.success("Баланс изменен!")
-            
-    with col2:
-        st.write("Статистика сайта")
-        st.info("Активных игроков: 124")
-        st.warning("Запросов на вывод: 3")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+    # 2. HERO BANNER
+    st.markdown("""
+        <div class="hero">
+            <h1 style="font-size: 50px; margin-bottom: 10px;">МЯУ-БОНУС ЖДЕТ!</h1>
+            <p style="font-size: 20px;">+200% к первому депозиту и 500 фриспинов в Neon Meow</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-def game_hall():
-    """Игровой зал"""
-    st.title("🐾 SLOT CAT - REAL PLAY")
+    # 3. GAME SECTION
+    st.markdown("<h2 style='padding-left: 5%;'>🔥 Популярные слоты</h2>", unsafe_allow_html=True)
     
-    # Отображение баланса
-    st.markdown(f'<div class="balance-box">Ваш баланс: {st.session_state.balance} 🐟</div>', unsafe_allow_html=True)
-    
-    st.write("### Выберите слот для игры")
-    cols = st.columns(3)
-    
-    slots = ["Neon Kitty", "Cyber Claw", "Ultra Purr"]
-    for i, slot in enumerate(slots):
-        with cols[i]:
-            st.image(f"https://via.placeholder.com/200x120/1b1464/ff00ff?text={slot}")
-            if st.button(f"Ставка 10 🐟", key=f"slot_{i}"):
-                if st.session_state.balance >= 10:
-                    st.session_state.balance -= 10
-                    with st.spinner('Вращаем...'):
-                        time.sleep(1)
-                    st.balloons()
-                    st.success("Вы выиграли 50 🐟!")
-                    st.session_state.balance += 50
-                    st.rerun()
-                else:
-                    st.error("Недостаточно рыбов!")
+    # Мы используем контейнеры Streamlit только как обертку для нашего HTML
+    cols = st.columns(4)
+    games = [
+        {"name": "Neon Cat", "emoji": "🐱", "color": "#ff00ff"},
+        {"name": "Lucky Paw", "emoji": "🐾", "color": "#00d2ff"},
+        {"name": "Fish Gold", "emoji": "🐟", "color": "#ffce00"},
+        {"name": "Moon Kitty", "emoji": "🌙", "color": "#800080"},
+    ]
 
-def main():
-    apply_styles()
-    
-    # Навигация в сайдбаре
-    st.sidebar.title("Slot Cat Menu")
-    
-    if not st.session_state.is_logged_in:
-        login_form()
-        st.warning("Пожалуйста, войдите, чтобы начать игру.")
-    else:
-        page = st.sidebar.radio("Перейти:", ["🎰 Игровой зал", "💳 Касса", "👤 Профиль"])
-        
-        if st.session_state.user_role == "admin":
-            if st.sidebar.checkbox("🔓 Открыть Админку"):
-                page = "Админ-панель"
+    for idx, game in enumerate(games):
+        with cols[idx % 4]:
+            st.markdown(f"""
+                <div class="game-card">
+                    <div class="game-img" style="color: {game['color']}">{game['emoji']}</div>
+                    <div style="padding: 15px; text-align: center;">
+                        <div style="font-weight: bold; margin-bottom: 10px;">{game['name']}</div>
+                    </div>
+                    <div class="play-overlay">
+                        <a href="#" class="btn-play">ИГРАТЬ</a>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+            # Невидимая кнопка для логики Streamlit (если нужно)
+            if st.button(f"Запуск {idx}", key=f"logic_{idx}", help="Нажми чтобы играть"):
+                st.toast(f"Запуск игры {game['name']}...")
 
-        if st.sidebar.button("Выход"):
-            st.session_state.is_logged_in = False
-            st.rerun()
+    # 4. ADMIN PANEL (Скрытая область внизу)
+    with st.expander("⚙️ Система управления (Админка)"):
+        st.subheader("Настройки сайта")
+        col_adm1, col_adm2 = st.columns(2)
+        with col_adm1:
+            st.text_input("Название сайта", value="Slot Cat")
+            st.color_picker("Основной цвет неона", value="#ff00ff")
+        with col_adm2:
+            st.number_input("RTP игрока (%)", value=95)
+            st.button("Сохранить изменения")
 
-        # Логика страниц
-        if page == "🎰 Игровой зал":
-            game_hall()
-        elif page == "Админ-панель":
-            admin_panel()
-        elif page == "💳 Касса":
-            st.header("Пополнение баланса")
-            amount = st.number_input("Сумма пополнения (🐟)", min_value=10)
-            if st.button("Оплатить"):
-                st.session_state.balance += amount
-                st.success(f"Баланс пополнен на {amount}!")
-        elif page == "👤 Профиль":
-            st.header("Ваш профиль")
-            st.write(f"Статус: {st.session_state.user_role}")
-            st.write(f"Всего выигрышей: 12,400 🐟")
+    # 5. FOOTER
+    st.markdown("""
+        <div style="text-align: center; padding: 50px; color: #444; border-top: 1px solid #222; margin-top: 50px;">
+            <p>Slot Cat Casino © 2024. Все права защищены. 18+</p>
+            <p style="font-size: 10px;">Этот сайт создан для демонстрации интерфейса на Streamlit.</p>
+        </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
